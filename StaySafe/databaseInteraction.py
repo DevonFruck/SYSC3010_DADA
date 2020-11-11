@@ -43,9 +43,9 @@ def retrieveDataFromTS():
     conn.commit()
     print("Values stored")
     
-    cursor.execute('''SELECT * FROM Store1Data''')
-    for row in cursor:
-        print(row['count'],row['temperature'],row['humidity'],row['date'],row['time'])
+#     cursor.execute('''SELECT * FROM Store1Data''')
+#     for row in cursor:
+#         print(row['count'],row['temperature'],row['humidity'],row['date'],row['time'])
     
 #     print(Count1)
 #     print(Temp1)
@@ -66,9 +66,9 @@ def retrieveDataFromTS():
     conn.commit()
     print("Values stored")
     
-    cursor.execute('''SELECT * FROM Store2Data''')
-    for row in cursor:
-        print(row['count'],row['temperature'],row['humidity'],row['date'],row['time'])
+#     cursor.execute('''SELECT * FROM Store2Data''')
+#     for row in cursor:
+#         print(row['count'],row['temperature'],row['humidity'],row['date'],row['time'])
 #     print(Count2)
 #     print(Temp2)
 #     print(Hum2)
