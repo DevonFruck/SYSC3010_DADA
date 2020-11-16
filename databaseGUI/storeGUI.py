@@ -1,13 +1,27 @@
 # Created by: PyQt5 UI code generator 5.15.1
+# Team DADA SYSC3010 Group Project
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-import sys, time, threading
+import sys, time, threading, datetime
+from datetime import datetime
+from databasepoll import database_retrieve
 
-OMEGALUL = 5
+
+############# GLOBAL VARIABLES ##################################
 ui = None
-cap = 25
+cap1 = 25
+cap2 = 25
+delay = 5 #GUI update interval, in minutes
 
+# These are arrays of the data retrieved from the database
+# The elements are count, temperature, and humidty, in that order
+#store1_data = None
+#store2_data = None
+#################################################################
+
+
+# GUI Class
 class Ui_MasterWindow(object):
     def setupUi(self, MasterWindow):
         MasterWindow.setObjectName("MasterWindow")
@@ -47,11 +61,11 @@ class Ui_MasterWindow(object):
         self.store1Frame.setFrameShadow(QtWidgets.QFrame.Raised)
         self.store1Frame.setObjectName("store1Frame")
         self.store1ProgressBar = QtWidgets.QProgressBar(self.store1Frame)
-        self.store1ProgressBar.setGeometry(QtCore.QRect(20, 160, 201, 31))
+        self.store1ProgressBar.setGeometry(QtCore.QRect(20, 120, 201, 31))
         font = QtGui.QFont()
         font.setPointSize(14)
         self.store1ProgressBar.setFont(font)
-        self.store1ProgressBar.setProperty("value", 24)
+        self.store1ProgressBar.setProperty("value", 0)
         self.store1ProgressBar.setObjectName("store1ProgressBar")
         self.store1_cap_label = QtWidgets.QLabel(self.store1Frame)
         self.store1_cap_label.setGeometry(QtCore.QRect(20, 10, 151, 31))
@@ -64,15 +78,17 @@ class Ui_MasterWindow(object):
         font = QtGui.QFont()
         font.setPointSize(14)
         self.store1Count.setFont(font)
+        self.store1Count.setReadOnly(True)
         self.store1Count.setObjectName("store1Count")
         self.store1_totalCustomers = QtWidgets.QLineEdit(self.store1Frame)
         self.store1_totalCustomers.setGeometry(QtCore.QRect(10, 350, 221, 31))
         font = QtGui.QFont()
         font.setPointSize(14)
         self.store1_totalCustomers.setFont(font)
+        self.store1_totalCustomers.setReadOnly(True)
         self.store1_totalCustomers.setObjectName("store1_totalCustomers")
         self.label_2 = QtWidgets.QLabel(self.store1Frame)
-        self.label_2.setGeometry(QtCore.QRect(190, 10, 41, 31))
+        self.label_2.setGeometry(QtCore.QRect(200, 10, 41, 31))
         font = QtGui.QFont()
         font.setPointSize(14)
         self.label_2.setFont(font)
@@ -82,12 +98,14 @@ class Ui_MasterWindow(object):
         font = QtGui.QFont()
         font.setPointSize(14)
         self.store1_totalCustomers_2.setFont(font)
+        self.store1_totalCustomers_2.setReadOnly(True)
         self.store1_totalCustomers_2.setObjectName("store1_totalCustomers_2")
         self.store1_totalCustomers_3 = QtWidgets.QLineEdit(self.store1Frame)
         self.store1_totalCustomers_3.setGeometry(QtCore.QRect(10, 260, 221, 31))
         font = QtGui.QFont()
         font.setPointSize(14)
         self.store1_totalCustomers_3.setFont(font)
+        self.store1_totalCustomers_3.setReadOnly(True)
         self.store1_totalCustomers_3.setObjectName("store1_totalCustomers_3")
         self.store2Frame = QtWidgets.QFrame(self.centralwidget)
         self.store2Frame.setGeometry(QtCore.QRect(500, 220, 251, 411))
@@ -96,11 +114,11 @@ class Ui_MasterWindow(object):
         self.store2Frame.setFrameShadow(QtWidgets.QFrame.Raised)
         self.store2Frame.setObjectName("store2Frame")
         self.store2ProgressBar = QtWidgets.QProgressBar(self.store2Frame)
-        self.store2ProgressBar.setGeometry(QtCore.QRect(20, 160, 201, 31))
+        self.store2ProgressBar.setGeometry(QtCore.QRect(20, 120, 201, 31))
         font = QtGui.QFont()
         font.setPointSize(14)
         self.store2ProgressBar.setFont(font)
-        self.store2ProgressBar.setProperty("value", 24)
+        self.store2ProgressBar.setProperty("value", 0)
         self.store2ProgressBar.setObjectName("store2ProgressBar")
         self.store2_cap_label = QtWidgets.QLabel(self.store2Frame)
         self.store2_cap_label.setGeometry(QtCore.QRect(20, 10, 151, 31))
@@ -113,15 +131,17 @@ class Ui_MasterWindow(object):
         font = QtGui.QFont()
         font.setPointSize(14)
         self.store2Count.setFont(font)
+        self.store2Count.setReadOnly(True)
         self.store2Count.setObjectName("store2Count")
         self.store2_customerPeak = QtWidgets.QLineEdit(self.store2Frame)
         self.store2_customerPeak.setGeometry(QtCore.QRect(10, 350, 221, 31))
         font = QtGui.QFont()
         font.setPointSize(14)
         self.store2_customerPeak.setFont(font)
+        self.store2_customerPeak.setReadOnly(True)
         self.store2_customerPeak.setObjectName("store2_customerPeak")
         self.label_3 = QtWidgets.QLabel(self.store2Frame)
-        self.label_3.setGeometry(QtCore.QRect(190, 10, 41, 31))
+        self.label_3.setGeometry(QtCore.QRect(200, 10, 41, 31))
         font = QtGui.QFont()
         font.setPointSize(14)
         self.label_3.setFont(font)
@@ -131,13 +151,23 @@ class Ui_MasterWindow(object):
         font = QtGui.QFont()
         font.setPointSize(14)
         self.store2_humidity.setFont(font)
+        self.store2_humidity.setReadOnly(True)
         self.store2_humidity.setObjectName("store2_humidity")
         self.store2_temp = QtWidgets.QLineEdit(self.store2Frame)
         self.store2_temp.setGeometry(QtCore.QRect(10, 260, 221, 31))
         font = QtGui.QFont()
         font.setPointSize(14)
         self.store2_temp.setFont(font)
+        self.store2_temp.setReadOnly(True)
         self.store2_temp.setObjectName("store2_temp")
+        #self.labeldate = QtWidgets.QLabel(self.centralwidget)
+        #self.labeldate.setGeometry(QtCore.QRect(360, 120, 261, 31))
+        font = QtGui.QFont()
+        font.setPointSize(14)
+        font.setItalic(False)
+        #self.labeldate.setFont(font)
+        #self.labeldate.setAutoFillBackground(True)
+        #self.labeldate.setObjectName("label")
         MasterWindow.setCentralWidget(self.centralwidget)
         self.menuBar = QtWidgets.QMenuBar(MasterWindow)
         self.menuBar.setEnabled(True)
@@ -150,10 +180,8 @@ class Ui_MasterWindow(object):
         self.statusbar = QtWidgets.QStatusBar(MasterWindow)
         self.statusbar.setObjectName("statusbar")
         MasterWindow.setStatusBar(self.statusbar)
-
         self.retranslateUi(MasterWindow)
         QtCore.QMetaObject.connectSlotsByName(MasterWindow)
-
 
     def retranslateUi(self, MasterWindow):
         _translate = QtCore.QCoreApplication.translate
@@ -162,33 +190,54 @@ class Ui_MasterWindow(object):
         self.store1Label.setText(_translate("MasterWindow", "Store 1"))
         self.store2Label.setText(_translate("MasterWindow", "Store 2"))
         self.store1_cap_label.setText(_translate("MasterWindow", "Store Capacity:"))
-        self.store1Count.setText(_translate("MasterWindow", "Current count: [number]"))
-        self.store1_totalCustomers.setText(_translate("MasterWindow", "Customer Peak:          []"))
+        self.store1Count.setText(_translate("MasterWindow", "Current count:           0"))
+        self.store1_totalCustomers.setText(_translate("MasterWindow", "Customer Peak:          0"))
         self.label_2.setText(_translate("MasterWindow", "25"))
-        self.store1_totalCustomers_2.setText(_translate("MasterWindow", "Recent Humidity:        []"))
-        self.store1_totalCustomers_3.setText(_translate("MasterWindow", "Recent Temperature:  []"))
+        self.store1_totalCustomers_2.setText(_translate("MasterWindow", "Recent Humidity:        0"))
+        self.store1_totalCustomers_3.setText(_translate("MasterWindow", "Recent Temperature:  0"))
         self.store2_cap_label.setText(_translate("MasterWindow", "Store Capacity:"))
-        self.store2Count.setText(_translate("MasterWindow", "Current count: [number]"))
-        self.store2_customerPeak.setText(_translate("MasterWindow", "Customer Peak:          []"))
+        self.store2Count.setText(_translate("MasterWindow", "Current count:           0"))
+        self.store2_customerPeak.setText(_translate("MasterWindow", "Customer Peak:          0"))
         self.label_3.setText(_translate("MasterWindow", "25"))
-        self.store2_humidity.setText(_translate("MasterWindow", "Recent Humidity:        []"))
-        self.store2_temp.setText(_translate("MasterWindow", "Recent Temperature:  []"))
+        self.store2_humidity.setText(_translate("MasterWindow", "Recent Humidity:        0"))
+        self.store2_temp.setText(_translate("MasterWindow", "Recent Temperature:  0"))
+        #self.labeldate.setText(_translate("MasterWindow", "Last updated: N/A"))
 
 
-    def updateGUI(MasterWindow, temp1, temp2, hum1, hum2, count1, count2):
-        global cap
+    def updateGUI(MasterWindow, count1, temp1, hum1, peak1, count2, temp2, hum2, peak2, time):
+        global cap1, cap2
         _translate = QtCore.QCoreApplication.translate
+
         
-        MasterWindow.store1ProgressBar.setProperty("value", (count2/cap)*100)
-        MasterWindow.store2ProgressBar.setProperty("value", (count2/cap)*100)
+        #MasterWindow.label.setText(_translate("MasterWindow", "Last updated: " +str(time)))
+        #self.labeldate.setText("Last updated: oop")
 
-        MasterWindow.store1_totalCustomers_2.setText(_translate("MasterWindow", "Recent Humidity:        " +str(hum1)))
-        MasterWindow.store1_totalCustomers_3.setText(_translate("MasterWindow", "Recent Temperature:  " +str(temp1)))
+        if count1 <= cap1 and count1 >= 0:
+            MasterWindow.store1ProgressBar.setProperty("value", (count1/cap1)*100)
 
-        MasterWindow.store2_humidity.setText(_translate("MasterWindow", "Recent Humidity:        " +str(hum2)))
-        MasterWindow.store2_temp.setText(_translate("MasterWindow", "Recent Temperature:  " + str(temp2)))
-        
+        if count2 <= cap2 and count2 >= 0:
+            MasterWindow.store2ProgressBar.setProperty("value", (count2/cap2)*100)
 
+        if hum1 >= 0 and hum1 <= 100:
+            MasterWindow.store1_totalCustomers_2.setText(_translate("MasterWindow", "Recent Humidity(%):     " +str(hum1)))
+
+        MasterWindow.store1_totalCustomers_3.setText(_translate("MasterWindow", "Recent Temp(°C): " +str(temp1)))
+
+        if hum1 >= 0 and hum1 <= 100:
+            MasterWindow.store2_humidity.setText(_translate("MasterWindow", "Recent Humidity(%):     " +str(hum2)))
+
+        MasterWindow.store2_temp.setText(_translate("MasterWindow", "Recent Temp(°C): " + str(temp2)))
+
+        if peak1 >=0 and peak1 <=cap1:
+            MasterWindow.store1_totalCustomers.setText(_translate("MasterWindow", "Customer Peak:          " +str(peak1)))
+            
+        if peak2 >=0 and peak2 <=cap2:
+            MasterWindow.store2_customerPeak.setText(_translate("MasterWindow", "Customer Peak:          " +str(peak2)))
+
+        if count1 >= 0 and count1 <= cap1:
+            MasterWindow.store1Count.setText(_translate("MasterWindow", "Current count:           " +str(count1)))
+        if count2 >= 0 and count2 <= cap2:
+            MasterWindow.store2Count.setText(_translate("MasterWindow", "Current count:           " +str(count2)))
 ######################### END OF GUI CLASS #####################################################
 
 def GUI():
@@ -200,41 +249,46 @@ def GUI():
     ui.setupUi(MasterWindow)
     MasterWindow.show()
     sys.exit(app.exec_())
-    #app.exec_()
 
 
 def polling():
-    global OMEGALUL
-    global ui
+    global ui, delay
 
-    testing_function()
+    time.sleep(5)   #Give 5 seconds to start up GUI to avoid errors
+    now = datetime.now()
+    #testing_function()  # testing function for end-to-end demo
+    
+    while True:     #Database polling and GUI updating takes place here
 
-    while True:     #Database polling goes in here, this is just test example
-        for i in range (0,2):
-            time.sleep(2)
-            OMEGALUL += 1
+        #found in databasepoll.py
+        store1_data, store2_data = database_retrieve()
+        current_time = now.strftime("%H:%M")
 
-        ui.updateGUI()
-        
+        ui.updateGUI(store1_data[0], store1_data[1], store1_data[2], store1_data[3],\
+                     store2_data[0], store2_data[1], store2_data[2], store2_data[3], current_time)
+
+        time.sleep(delay*60) #Interval between updates
 
 def testing_function():
     global ui
 
-    time.sleep(10)
-    ui.updateGUI(12.5, 15, 20, 21, 5, 7)
+    time.sleep(5)
+    now = datetime.now()
+    current_time = now.strftime("%H:%M")
+
+    ui.updateGUI(12.5, 15, 20, 21, 5, 7, 15, 22, current_time)
     
     time.sleep(10)
-    ui.updateGUI(0, 0, 10, 10, -1, 1)
+    current_time = now.strftime("%H:%M")
+    ui.updateGUI(0, 0, 10, 10, -1, 1, 17, 25, current_time)
 
     time.sleep(10)
-    ui.updateGUI(0, 0, -5, 15, 7, 2)
-    
-    
+    current_time = now.strftime("%H:%M")
+    ui.updateGUI(0, 0, -5, 15, 21, 26, 19, 21, current_time)
+
 
 if __name__ == "__main__":
     poll = threading.Thread(target=polling)
     poll.daemon = True
     poll.start()
     GUI()
-
-    
