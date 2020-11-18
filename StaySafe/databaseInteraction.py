@@ -33,19 +33,22 @@ def retrieveDataFromTS():
     Hum1 = store1['feeds'][0]['field3']
 
     #Find values of recorded date and time 
-    Date1 = store1['channel']['created_at']
+    Date1 = store1['feeds'][0]['created_at']
     Date1 = Date1[0:10]
-    Time1 = store1['channel']['created_at']
+    #print(Date1)
+    Time1 = store1['feeds'][0]['created_at']
     Time1 = Time1[12:16]
+    #print(Time1)
     
     #Insert recorded values into database
     cursor.execute('''INSERT INTO Store2Data (date,time,count,temperature,humidity) VALUES (?,?,?,?,?)''',(Date1, Time1, Count1, Temp1, Hum1))
     conn.commit()
     print("Values stored")
     
-#     cursor.execute('''SELECT * FROM Store1Data''')
-#     for row in cursor:
-#         print(row['count'],row['temperature'],row['humidity'],row['date'],row['time'])
+    #FOR DEMO ONLY - Print selected rows' data
+    cursor.execute('''SELECT * FROM Store1Data''')
+    for row in cursor:
+        print(row['count'],row['temperature'],row['humidity'],row['date'],row['time'])
     
 #     print(Count1)
 #     print(Temp1)
@@ -61,14 +64,14 @@ def retrieveDataFromTS():
     Hum2 = store2['feeds'][0]['field3']
     
     #Insert recorded values into database
-    #Uses Date1 and Time1 to avoid query errors that come up when timestamps do not match exactly
+    #Uses Date1 and Time1 to avoid query errors that come up when timestamps do not match exactly. Pull is done at nearly the same time, so this is fine.
     cursor.execute('''INSERT INTO Store2Data (date,time,count,temperature,humidity) VALUES (?,?,?,?,?)''',(Date1, Time1, Count2, Temp2, Hum2))
     conn.commit()
     print("Values stored")
     
-#     cursor.execute('''SELECT * FROM Store2Data''')
-#     for row in cursor:
-#         print(row['count'],row['temperature'],row['humidity'],row['date'],row['time'])
+    cursor.execute('''SELECT * FROM Store2Data''')
+    for row in cursor:
+        print(row['count'],row['temperature'],row['humidity'],row['date'],row['time'])
 #     print(Count2)
 #     print(Temp2)
 #     print(Hum2)
