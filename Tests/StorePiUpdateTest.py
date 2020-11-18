@@ -7,13 +7,10 @@ from datetime import datetime
 key = "CDSY7SI5HEFWKVCS"  # Put your API Key here
 
 
-#d1 = date.today().strftime("%d/%m/%Y")
-#time1 = datetime.now().strftime("%H:%M")
-
 def storePiUpdate():
-    count = 23
-    temp = 67
-    humidity = 958
+    count = 43
+    temp = 34.6
+    humidity = 843.9
     while True: #Uploading store data to thingspeak
         params = urllib.parse.urlencode({'field1': count, 'field2': temp, 'field3': humidity, 'key':key})
         headers = {"Content-typZZe": "application/x-www-form-urlencoded","Accept": "text/plain"}

@@ -10,18 +10,20 @@
 #   --output output/webcam_output.avi
 
 # import the necessary packages
-from sense_emu import SenseHat
+from sense_emu import SenseHat 
+#from sense_hat import SenseHat #change to sense_hat if not using emulator
 from pyimagesearch.centroidtracker import CentroidTracker
 from pyimagesearch.trackableobject import TrackableObject
 from imutils.video import VideoStream
 from imutils.video import FPS
+from StorePiUpdate import *
 import numpy as np
 import argparse
 import imutils
 import time
 import dlib
 import cv2
-
+import threading
 
 OFFSET_LEFT = 1
 OFFSET_TOP = 2
@@ -53,6 +55,21 @@ def show_number(val, r, g, b):
   if (abs_val > 9): show_digit(tens, OFFSET_LEFT, OFFSET_TOP, r, g, b)
   show_digit(units, OFFSET_LEFT+4, OFFSET_TOP, r, g, b)
 
+def show_capacity(total):
+    green = (0,255,0)
+    white = (255,255,255)
+    red = (255, 0, 0)
+    storeCapacityPercent = 64 * total/totalCapacity
+    
+    color = green
+    if total >= totalCapacity:
+        color = red 
+        
+    pixels = [color if i < storeCapacityPercent
+                else white for i in range(64)]
+    senseH.set_pixels(pixels)
+    
+
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
 ap.add_argument("-p", "--prototxt", required=True,
@@ -61,8 +78,8 @@ ap.add_argument("-m", "--model", required=True,
     help="path to Caffe pre-trained model")
 ap.add_argument("-i", "--input", type=str,
     help="path to optional input video file")
-ap.add_argument("-o", "--output", type=str,
-    help="path to optional output video file")
+#ap.add_argument("-o", "--output", type=str,
+    #help="path to optional output video file")
 ap.add_argument("-c", "--confidence", type=float, default=0.4,
     help="minimum probability to filter weak detections")
 ap.add_argument("-s", "--skip-frames", type=int, default=30,
@@ -117,6 +134,7 @@ totalFrames = 0
 totalDown = 0
 totalUp = 0
 totalPrev = 0
+totalCapacity = 4
 
 # start the frames per second throughput estimator
 fps = FPS().start()
@@ -145,10 +163,10 @@ while True:
 
     # if we are supposed to be writing a video to disk, initialize
     # the writer
-    if args["output"] is not None and writer is None:
-        fourcc = cv2.VideoWriter_fourcc(*"MJPG")
-        writer = cv2.VideoWriter(args["output"], fourcc, 30,
-            (W, H), True)
+    #if args["output"] is not None and writer is None:
+        #fourcc = cv2.VideoWriter_fourcc(*"MJPG")
+        #writer = cv2.VideoWriter(args["output"], fourcc, 30,
+            #(W, H), True)
 
     # initialize the current status along with our list of bounding
     # box rectangles returned by either (1) our object detector or
@@ -288,21 +306,20 @@ while True:
         ("Status", status),
     ]
 
-    # loop over the info tuples and draw them on our frame
+     # loop over the info tuples and draw them on our frame
     for (i, (k, v)) in enumerate(info):
         text = "{}: {}".format(k, v)
         cv2.putText(frame, text, (10, H - ((i * 20) + 20)),
             cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
         
-    if totalUp-totalDown < 0:
+    if totalUp-totalDown <= 0:
         total = 0
     else:
         total = totalUp-totalDown
     if total != totalPrev:
         print(total)
-        if total < 10:
-            senseH.clear()
-        show_number(total,200,0,60)
+        storePiUpdate(total)
+        show_capacity(total)  
     totalPrev = total
     
     # check to see if we should write the frame to disk
