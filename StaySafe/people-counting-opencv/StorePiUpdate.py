@@ -12,9 +12,18 @@ from datetime import datetime
 key = "CDSY7SI5HEFWKVCS"  # Put your API Key here respective to store number/location
 s2URL = "https://api.thingspeak.com/channels/1225784/feeds.json?api_key=6UIX8KY589EGWK9J&results=1&timezone=America/New_York"
 
+
 def storePiUpdate(count):
-    temp = 34.6
-    humidity = 843.9
+    
+    #Demo values
+    temp = 24.54
+    humidity = 60.35
+    
+    
+    #Using sensors on senseHAT to erad values, rounding to 2 decimal places
+#     temp = round(senseH.get_temperature(),2)
+#     humidity = round(senseH.get_humidity(), 2)
+    
     while True: #Uploading store data to thingspeak
         params = urllib.parse.urlencode({'field1': count, 'field2': temp, 'field3': humidity, 'key':key})
         headers = {"Content-typZZe": "application/x-www-form-urlencoded","Accept": "text/plain"}
