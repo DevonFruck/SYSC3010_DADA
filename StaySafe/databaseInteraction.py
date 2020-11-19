@@ -47,8 +47,8 @@ def retrieveDataFromTS():
     Date1 = Date1[0:10]
     #print(Date1)
     Time1 = store1['feeds'][0]['created_at']
-    Time1 = Time1[12:16]
-    #print(Time1)
+    Time1 = Time1[11:16]
+    print(Time1)
     
     #Insert recorded values into database
     cursor.execute('''INSERT INTO Store2Data (date,time,count,temperature,humidity) VALUES (?,?,?,?,?)''',(Date1, Time1, Count1, Temp1, Hum1))
