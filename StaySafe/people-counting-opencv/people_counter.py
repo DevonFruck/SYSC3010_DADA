@@ -5,21 +5,72 @@
 #   --output output/output_01.avi
 #
 # To read from webcam and write back out to disk:
-# python people_counter.py --prototxt mobilenet_ssd/MobileNetSSD_deploy.prototxt \
+# python people_counter.py --prototxt mobilenet_ssd/MobileNQetSSD_deploy.prototxt \
 #   --model mobilenet_ssd/MobileNetSSD_deploy.caffemodel \
 #   --output output/webcam_output.avi
 
 # import the necessary packages
+from sense_emu import SenseHat 
+#from sense_hat import SenseHat #change to sense_hat if not using emulator
 from pyimagesearch.centroidtracker import CentroidTracker
 from pyimagesearch.trackableobject import TrackableObject
 from imutils.video import VideoStream
 from imutils.video import FPS
+from StorePiUpdate import *
 import numpy as np
 import argparse
 import imutils
 import time
 import dlib
 import cv2
+import threading
+
+OFFSET_LEFT = 1
+OFFSET_TOP = 2
+
+NUMS =[1,1,1,1,0,1,1,0,1,1,0,1,1,1,1,  # 0
+       0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,  # 1
+       1,1,1,0,0,1,0,1,0,1,0,0,1,1,1,  # 2
+       1,1,1,0,0,1,1,1,1,0,0,1,1,1,1,  # 3
+       1,0,0,1,0,1,1,1,1,0,0,1,0,0,1,  # 4
+       1,1,1,1,0,0,1,1,1,0,0,1,1,1,1,  # 5
+       1,1,1,1,0,0,1,1,1,1,0,1,1,1,1,  # 6
+       1,1,1,0,0,1,0,1,0,1,0,0,1,0,0,  # 7
+       1,1,1,1,0,1,1,1,1,1,0,1,1,1,1,  # 8
+       1,1,1,1,0,1,1,1,1,0,0,1,0,0,1]  # 9
+
+# Displays a single digit (0-9)
+def show_digit(val, xd, yd, r, g, b):
+  offset = val * 15
+  for p in range(offset, offset + 15):
+    xt = p % 3
+    yt = (p-offset) // 3
+    senseH.set_pixel(xt+xd, yt+yd, r*NUMS[p], g*NUMS[p], b*NUMS[p])
+
+# Displays a two-digits positive number (0-99)
+def show_number(val, r, g, b):
+  abs_val = abs(val)
+  tens = abs_val // 10
+  units = abs_val % 10
+  if (abs_val > 9): show_digit(tens, OFFSET_LEFT, OFFSET_TOP, r, g, b)
+  show_digit(units, OFFSET_LEFT+4, OFFSET_TOP, r, g, b)
+
+#Displays the percentage of people in store on the SenseHat LED, green implies within capacity
+#Red implies over capacity
+def show_capacity(total):
+    green = (0,255,0)
+    white = (255,255,255)
+    red = (255, 0, 0)
+    storeCapacityPercent = 64 * total/totalCapacity
+    
+    color = green
+    if total >= totalCapacity:
+        color = red 
+        
+    pixels = [color if i < storeCapacityPercent
+                else white for i in range(64)]
+    senseH.set_pixels(pixels)
+    
 
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
@@ -29,13 +80,18 @@ ap.add_argument("-m", "--model", required=True,
     help="path to Caffe pre-trained model")
 ap.add_argument("-i", "--input", type=str,
     help="path to optional input video file")
-ap.add_argument("-o", "--output", type=str,
-    help="path to optional output video file")
+#ap.add_argument("-o", "--output", type=str,
+    #help="path to optional output video file")
 ap.add_argument("-c", "--confidence", type=float, default=0.4,
     help="minimum probability to filter weak detections")
 ap.add_argument("-s", "--skip-frames", type=int, default=30,
     help="# of skip frames between detections")
 args = vars(ap.parse_args())
+
+# sensehat gui stuff
+senseH = SenseHat()
+senseH.low_light = True
+senseH.clear()
 
 # initialize the list of class labels MobileNet SSD was trained to
 # detect
@@ -51,7 +107,7 @@ net = cv2.dnn.readNetFromCaffe(args["prototxt"], args["model"])
 # if a video path was not supplied, grab a reference to the webcam
 if not args.get("input", False):
     print("[INFO] starting video stream...")
-    vs = VideoStream(src="rtsp://192.168.0.11:8080/h264_ulaw.sdp").start()
+    vs = VideoStream(src="rtsp://192.168.0.16:8080/h264_ulaw.sdp").start()
     time.sleep(2.0)
 
 # otherwise, grab a reference to the video file
@@ -79,6 +135,10 @@ trackableObjects = {}
 totalFrames = 0
 totalDown = 0
 totalUp = 0
+totalPrev = 0
+#totalCapacity set to 3 to test the color change in the video
+totalCapacity = 3
+
 
 # start the frames per second throughput estimator
 fps = FPS().start()
@@ -98,7 +158,7 @@ while True:
     # resize the frame to have a maximum width of 500 pixels (the
     # less data we have, the faster we can process it), then convert
     # the frame from BGR to RGB for dlib
-    frame = imutils.resize(frame, width=500)
+    frame = imutils.resize(frame, width=300)
     rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
     # if the frame dimensions are empty, set them
@@ -107,10 +167,10 @@ while True:
 
     # if we are supposed to be writing a video to disk, initialize
     # the writer
-    if args["output"] is not None and writer is None:
-        fourcc = cv2.VideoWriter_fourcc(*"MJPG")
-        writer = cv2.VideoWriter(args["output"], fourcc, 30,
-            (W, H), True)
+    #if args["output"] is not None and writer is None:
+        #fourcc = cv2.VideoWriter_fourcc(*"MJPG")
+        #writer = cv2.VideoWriter(args["output"], fourcc, 30,
+            #(W, H), True)
 
     # initialize the current status along with our list of bounding
     # box rectangles returned by either (1) our object detector or
@@ -250,12 +310,22 @@ while True:
         ("Status", status),
     ]
 
-    # loop over the info tuples and draw them on our frame
+     # loop over the info tuples and draw them on our frame
     for (i, (k, v)) in enumerate(info):
         text = "{}: {}".format(k, v)
         cv2.putText(frame, text, (10, H - ((i * 20) + 20)),
             cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
-
+        
+    if totalUp-totalDown <= 0:
+        total = 0
+    else:
+        total = totalUp-totalDown
+    if total != totalPrev:
+        print(total)
+        storePiUpdate(total)
+        show_capacity(total)  
+    totalPrev = total
+    
     # check to see if we should write the frame to disk
     if writer is not None:
         writer.write(frame)
@@ -277,6 +347,9 @@ while True:
 fps.stop()
 print("[INFO] elapsed time: {:.2f}".format(fps.elapsed()))
 print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
+
+#clearing sensehat led
+senseH.clear()
 
 # check to see if we need to release the video writer pointer
 if writer is not None:
