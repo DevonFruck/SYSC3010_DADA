@@ -1,28 +1,26 @@
-# Created by: PyQt5 UI code generator 5.15.1
+# Created in part by: PyQt5 UI code generator 5.15.1
 # Team DADA SYSC3010 Group Project
-
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 import sys, time, threading, datetime
 from datetime import datetime
 from databasepoll import database_retrieve
-
+from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
 
 ############# GLOBAL VARIABLES ##################################
-ui = None
-cap1 = 25
-cap2 = 25
-delay = 0.6 #GUI update interval, in minutes
-
-# These are arrays of the data retrieved from the database
-# The elements are count, temperature, and humidty, in that order
-#store1_data = None
-#store2_data = None
+CAP1 = 25
+CAP2 = 25
+DELAY = 0.1 #GUI update interval, in minutes
 #################################################################
 
-
 # GUI Class
-class Ui_MasterWindow(object):
+class Ui_MasterWindow(QObject):
+
+    updateSignal = pyqtSignal(int, int, int, int, int, int, int, int, str)
+    
+    def __init__(self):
+        QObject.__init__(self)
+
     def setupUi(self, MasterWindow):
         MasterWindow.setObjectName("MasterWindow")
         MasterWindow.resize(942, 750)
@@ -160,14 +158,14 @@ class Ui_MasterWindow(object):
         self.store2_temp.setFont(font)
         self.store2_temp.setReadOnly(True)
         self.store2_temp.setObjectName("store2_temp")
-        #self.labeldate = QtWidgets.QLabel(self.centralwidget)
-        #self.labeldate.setGeometry(QtCore.QRect(360, 120, 261, 31))
+        self.labeldate = QtWidgets.QLabel(self.centralwidget)
+        self.labeldate.setGeometry(QtCore.QRect(360, 120, 261, 31))
         font = QtGui.QFont()
         font.setPointSize(14)
         font.setItalic(False)
-        #self.labeldate.setFont(font)
-        #self.labeldate.setAutoFillBackground(True)
-        #self.labeldate.setObjectName("label")
+        self.labeldate.setFont(font)
+        self.labeldate.setAutoFillBackground(True)
+        self.labeldate.setObjectName("label")
         MasterWindow.setCentralWidget(self.centralwidget)
         self.menuBar = QtWidgets.QMenuBar(MasterWindow)
         self.menuBar.setEnabled(True)
@@ -182,6 +180,9 @@ class Ui_MasterWindow(object):
         MasterWindow.setStatusBar(self.statusbar)
         self.retranslateUi(MasterWindow)
         QtCore.QMetaObject.connectSlotsByName(MasterWindow)
+
+        #Signal for updating GUI
+        self.updateSignal.connect(self.updateGUI)
 
     def retranslateUi(self, MasterWindow):
         _translate = QtCore.QCoreApplication.translate
@@ -201,68 +202,73 @@ class Ui_MasterWindow(object):
         self.label_3.setText(_translate("MasterWindow", "25"))
         self.store2_humidity.setText(_translate("MasterWindow", "Recent Humidity:        0"))
         self.store2_temp.setText(_translate("MasterWindow", "Recent Temperature:  0"))
-        #self.labeldate.setText(_translate("MasterWindow", "Last updated: N/A"))
+        self.labeldate.setText(_translate("MasterWindow", "Last updated: N/A"))
 
 
+    @pyqtSlot(int, int, int, int, int, int, int, int, str)
     def updateGUI(MasterWindow, count1, temp1, hum1, peak1, count2, temp2, hum2, peak2, time):
-        global cap1, cap2
+        global CAP1, CAP2
         _translate = QtCore.QCoreApplication.translate
 
         
-        #MasterWindow.label.setText(_translate("MasterWindow", "Last updated: " +str(time)))
-        #self.labeldate.setText("Last updated: oop")
+        MasterWindow.labeldate.setText(_translate("MasterWindow", "Last updated: " +str(time)))
 
-        if count1 >= cap1:
+        #PROGRESS BAR UPDATES
+        if count1 >= CAP1:
             MasterWindow.store1ProgressBar.setProperty("value", 100)
+            MasterWindow.store1ProgressBar.setStyleSheet("QProgressBar::chunk "
+                  "{"
+                    "background-color: red;"
+                  "}")
         elif count1 >= 0:
-            MasterWindow.store1ProgressBar.setProperty("value", (count1/cap1)*100)
+            MasterWindow.store1ProgressBar.setProperty("value", (count1/CAP1)*100)
+            MasterWindow.store1ProgressBar.setStyleSheet("QProgressBar::chunk "
+                "{"
+                   "background-color: lightgreen;"
+                 "}")
 
-
-        if count2 >= cap2:
+        if count2 >= CAP2:
             MasterWindow.store2ProgressBar.setProperty("value", 100)
-        elif count1 >= 0:
-            MasterWindow.store2ProgressBar.setProperty("value", (count2/cap2)*100)
+            MasterWindow.store1ProgressBar.setStyleSheet("QProgressBar::chunk "
+                  "{"
+                    "background-color: red;"
+                  "}")
+        elif count2 >= 0:
+            MasterWindow.store2ProgressBar.setProperty("value", (count2/CAP2)*100)
+            MasterWindow.store2ProgressBar.setStyleSheet("QProgressBar::chunk "
+                  "{"
+                    "background-color: lightgreen;"
+                  "}")
 
+        # HUMIDITY UPDATE
+        if hum1 >= 0 and hum1 <= 100:
+            MasterWindow.store1_totalCustomers_2.setText(_translate("MasterWindow", "Recent Humidity(%):  " +str(hum1)))
 
         if hum1 >= 0 and hum1 <= 100:
-            MasterWindow.store1_totalCustomers_2.setText(_translate("MasterWindow", "Recent Humidity(%):     " +str(hum1)))
+            MasterWindow.store2_humidity.setText(_translate("MasterWindow", "Recent Humidity(%):  " +str(hum2)))
 
-        MasterWindow.store1_totalCustomers_3.setText(_translate("MasterWindow", "Recent Temp(°C): " +str(temp1)))
+        MasterWindow.store1_totalCustomers_3.setText(_translate("MasterWindow", "Recent Temp(°C):      " +str(temp1)))
+        MasterWindow.store2_temp.setText(_translate("MasterWindow", "Recent Temp(°C):      " + str(temp2)))
 
-        if hum1 >= 0 and hum1 <= 100:
-            MasterWindow.store2_humidity.setText(_translate("MasterWindow", "Recent Humidity(%):     " +str(hum2)))
-
-        MasterWindow.store2_temp.setText(_translate("MasterWindow", "Recent Temp(°C): " + str(temp2)))
-
+        #PEAK UPDATES
         if peak1 >=0:
-            MasterWindow.store1_totalCustomers.setText(_translate("MasterWindow", "Customer Peak:          " +str(peak1)))
+            MasterWindow.store1_totalCustomers.setText(_translate("MasterWindow", "Customer Peak:         " +str(peak1)))
             
         if peak2 >=0:
-            MasterWindow.store2_customerPeak.setText(_translate("MasterWindow", "Customer Peak:          " +str(peak2)))
+            MasterWindow.store2_customerPeak.setText(_translate("MasterWindow", "Customer Peak:         " +str(peak2)))
 
+        #CURRENT COUNT UPDATES
         if count1 >= 0:
             MasterWindow.store1Count.setText(_translate("MasterWindow", "Current count:           " +str(count1)))
         if count2 >= 0:
             MasterWindow.store2Count.setText(_translate("MasterWindow", "Current count:           " +str(count2)))
 ######################### END OF GUI CLASS #####################################################
 
-def GUI():
-    global ui
-    
-    app = QtWidgets.QApplication(sys.argv)
-    MasterWindow = QtWidgets.QMainWindow()
-    ui = Ui_MasterWindow()
-    ui.setupUi(MasterWindow)
-    MasterWindow.show()
-    sys.exit(app.exec_())
-
-
 def polling():
-    global ui, delay
+    global ui, DELAY
 
     time.sleep(5)   #Give 5 seconds to start up GUI to avoid errors
     now = datetime.now()
-    #testing_function()  # testing function for end-to-end demo
     
     while True:     #Database polling and GUI updating takes place here
 
@@ -270,31 +276,23 @@ def polling():
         store1_data, store2_data = database_retrieve()
         current_time = now.strftime("%H:%M")
 
-        ui.updateGUI(store1_data[0], store1_data[1], store1_data[2], store1_data[3],\
-                     store2_data[0], store2_data[1], store2_data[2], store2_data[3], current_time)
+        ui.updateSignal.emit(store1_data[0], store1_data[1], store1_data[2], store1_data[3],\
+                             store2_data[0], store2_data[1], store2_data[2], store2_data[3], current_time)
 
-        time.sleep(delay*60) #Interval between updates
-
-def testing_function():
-    global ui
-
-    time.sleep(5)
-    now = datetime.now()
-    current_time = now.strftime("%H:%M")
-
-    ui.updateGUI(12.5, 15, 20, 21, 5, 7, 15, 22, current_time)
-    
-    time.sleep(10)
-    current_time = now.strftime("%H:%M")
-    ui.updateGUI(0, 0, 10, 10, -1, 1, 17, 25, current_time)
-
-    time.sleep(10)
-    current_time = now.strftime("%H:%M")
-    ui.updateGUI(0, 0, -5, 15, 21, 26, 19, 21, current_time)
-
+        time.sleep(DELAY*60) #Interval between updates
 
 if __name__ == "__main__":
+
+    app = QtWidgets.QApplication(sys.argv)
+    MasterWindow = QtWidgets.QMainWindow()
+    ui = Ui_MasterWindow()
+    ui.setupUi(MasterWindow)
+
+    #Create thread for polling database
     poll = threading.Thread(target=polling)
     poll.daemon = True
     poll.start()
-    GUI()
+    
+    MasterWindow.show()
+    sys.exit(app.exec_())
+
