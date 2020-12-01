@@ -53,9 +53,10 @@ def retrieveDataFromTS():
     #Insert recorded values into database
     cursor.execute('''INSERT INTO Store2Data (date,time,count,temperature,humidity) VALUES (?,?,?,?,?)''',(Date1, Time1, Count1, Temp1, Hum1))
     conn.commit()
+    #For demo only
     print("Values stored")
     
-    #FOR DEMO ONLY - Print selected rows' data
+    #FOR DEMOS ONLY WILL BE COMMENTED OUT LATER - Print selected rows' data
     cursor.execute('''SELECT * FROM Store1Data''')
     for row in cursor:
         print(row['count'],row['temperature'],row['humidity'],row['date'],row['time'])
@@ -74,7 +75,8 @@ def retrieveDataFromTS():
     Hum2 = float(store2['feeds'][0]['field3'])
     
     #confirm values fall into expected range, and are not extranneous.
-    #If count is negative, record it as 0
+    #If count is negative, record it as 0 - means more people left than entered, 
+    #   maybe an employee entering through a back door
     #If environment values are extranneous, exit funciton with failed status.
     if Count2 < 0:
         Count2 = 0
@@ -89,7 +91,7 @@ def retrieveDataFromTS():
     #Uses Date1 and Time1 to avoid query errors that come up when timestamps do not match exactly. Pull is done at nearly the same time, so this is fine.
     cursor.execute('''INSERT INTO Store2Data (date,time,count,temperature,humidity) VALUES (?,?,?,?,?)''',(Date1, Time1, Count2, Temp2, Hum2))
     conn.commit()
-    #Will be commented out for launch, for demos only
+    #For demos only
     print("Values stored")
     
     
@@ -110,8 +112,8 @@ if __name__ == '__main__':
     while(True):
         #If the storage to the database worked, wait 5 minutes and then store next data point
         if retrieveDataFromTS():
-            #Use 30 seconds for sake of demos 
-            time.sleep(30)
+            #Using 15 Seconds for demos
+            time.sleep(15)
         #If the storage to the database failed, try again for clean values.
         else:
             retrieveDataFromTS()
