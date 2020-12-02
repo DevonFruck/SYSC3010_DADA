@@ -3,6 +3,12 @@
 import sqlite3
 
 def database_retrieve():
+
+    '''
+    Collects data from each table and puts it together
+    in an array to pass to the main file.
+    '''
+    
     #connect to database file
     dbconnect = sqlite3.connect("database.db")
 

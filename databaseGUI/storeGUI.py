@@ -8,12 +8,12 @@ from databasepoll import database_retrieve
 from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
 
 ############# GLOBAL VARIABLES ##################################
-CAP1 = 25
-CAP2 = 25
+CAP1 = 25   # Store 1 capacity
+CAP2 = 25   # Store 2 capacity
 DELAY = 0.1 #GUI update interval, in minutes
 #################################################################
-
-# GUI Class
+#################################################################
+############### GUI Class #######################################
 class Ui_MasterWindow(QObject):
 
     updateSignal = pyqtSignal(int, int, int, int, int, int, int, int, str)
@@ -216,28 +216,30 @@ class Ui_MasterWindow(QObject):
         #PROGRESS BAR UPDATES
         if count1 >= CAP1:
             MasterWindow.store1ProgressBar.setProperty("value", 100)
-            MasterWindow.store1ProgressBar.setStyleSheet("QProgressBar::chunk "
-                  "{"
-                    "background-color: red;"
+            MasterWindow.store1ProgressBar.setStyleSheet("QProgressBar::chunk "
+                  "{"
+                    "background-color: red;"
                   "}")
+            
         elif count1 >= 0:
             MasterWindow.store1ProgressBar.setProperty("value", (count1/CAP1)*100)
             MasterWindow.store1ProgressBar.setStyleSheet("QProgressBar::chunk "
-                "{"
-                   "background-color: lightgreen;"
+                "{"
+                   "background-color: lightgreen;"
                  "}")
 
         if count2 >= CAP2:
             MasterWindow.store2ProgressBar.setProperty("value", 100)
-            MasterWindow.store1ProgressBar.setStyleSheet("QProgressBar::chunk "
-                  "{"
-                    "background-color: red;"
+            MasterWindow.store1ProgressBar.setStyleSheet("QProgressBar::chunk "
+                  "{"
+                    "background-color: red;"
                   "}")
+            
         elif count2 >= 0:
             MasterWindow.store2ProgressBar.setProperty("value", (count2/CAP2)*100)
-            MasterWindow.store2ProgressBar.setStyleSheet("QProgressBar::chunk "
-                  "{"
-                    "background-color: lightgreen;"
+            MasterWindow.store2ProgressBar.setStyleSheet("QProgressBar::chunk "
+                  "{"
+                    "background-color: lightgreen;"
                   "}")
 
         # HUMIDITY UPDATE
@@ -263,6 +265,7 @@ class Ui_MasterWindow(QObject):
         if count2 >= 0:
             MasterWindow.store2Count.setText(_translate("MasterWindow", "Current count:           " +str(count2)))
 ######################### END OF GUI CLASS #####################################################
+################################################################################################
 
 def polling():
     global ui, DELAY
