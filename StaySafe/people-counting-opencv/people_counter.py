@@ -11,7 +11,7 @@
 
 # import the necessary packages
 from sense_emu import SenseHat 
-#from sense_hat import SenseHat #change to sense_hat if not using emulator
+#from sense_hat import SenseHat #uncomment this if not using emulator
 from pyimagesearch.centroidtracker import CentroidTracker
 from pyimagesearch.trackableobject import TrackableObject
 from imutils.video import VideoStream
@@ -23,37 +23,36 @@ import imutils
 import time
 import dlib
 import cv2
-import threading
 
-OFFSET_LEFT = 1
-OFFSET_TOP = 2
-
-NUMS =[1,1,1,1,0,1,1,0,1,1,0,1,1,1,1,  # 0
-       0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,  # 1
-       1,1,1,0,0,1,0,1,0,1,0,0,1,1,1,  # 2
-       1,1,1,0,0,1,1,1,1,0,0,1,1,1,1,  # 3
-       1,0,0,1,0,1,1,1,1,0,0,1,0,0,1,  # 4
-       1,1,1,1,0,0,1,1,1,0,0,1,1,1,1,  # 5
-       1,1,1,1,0,0,1,1,1,1,0,1,1,1,1,  # 6
-       1,1,1,0,0,1,0,1,0,1,0,0,1,0,0,  # 7
-       1,1,1,1,0,1,1,1,1,1,0,1,1,1,1,  # 8
-       1,1,1,1,0,1,1,1,1,0,0,1,0,0,1]  # 9
-
-# Displays a single digit (0-9)
-def show_digit(val, xd, yd, r, g, b):
-  offset = val * 15
-  for p in range(offset, offset + 15):
-    xt = p % 3
-    yt = (p-offset) // 3
-    senseH.set_pixel(xt+xd, yt+yd, r*NUMS[p], g*NUMS[p], b*NUMS[p])
-
-# Displays a two-digits positive number (0-99)
-def show_number(val, r, g, b):
-  abs_val = abs(val)
-  tens = abs_val // 10
-  units = abs_val % 10
-  if (abs_val > 9): show_digit(tens, OFFSET_LEFT, OFFSET_TOP, r, g, b)
-  show_digit(units, OFFSET_LEFT+4, OFFSET_TOP, r, g, b)
+# OFFSET_LEFT = 1
+# OFFSET_TOP = 2
+# 
+# NUMS =[1,1,1,1,0,1,1,0,1,1,0,1,1,1,1,  # 0
+#        0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,  # 1
+#        1,1,1,0,0,1,0,1,0,1,0,0,1,1,1,  # 2
+#        1,1,1,0,0,1,1,1,1,0,0,1,1,1,1,  # 3
+#        1,0,0,1,0,1,1,1,1,0,0,1,0,0,1,  # 4
+#        1,1,1,1,0,0,1,1,1,0,0,1,1,1,1,  # 5
+#        1,1,1,1,0,0,1,1,1,1,0,1,1,1,1,  # 6
+#        1,1,1,0,0,1,0,1,0,1,0,0,1,0,0,  # 7
+#        1,1,1,1,0,1,1,1,1,1,0,1,1,1,1,  # 8
+#        1,1,1,1,0,1,1,1,1,0,0,1,0,0,1]  # 9
+# 
+# # Displays a single digit (0-9)
+# def show_digit(val, xd, yd, r, g, b):
+#   offset = val * 15
+#   for p in range(offset, offset + 15):
+#     xt = p % 3
+#     yt = (p-offset) // 3
+#     senseH.set_pixel(xt+xd, yt+yd, r*NUMS[p], g*NUMS[p], b*NUMS[p])
+# 
+# # Displays a two-digits positive number (0-99)
+# def show_number(val, r, g, b):
+#   abs_val = abs(val)
+#   tens = abs_val // 10
+#   units = abs_val % 10
+#   if (abs_val > 9): show_digit(tens, OFFSET_LEFT, OFFSET_TOP, r, g, b)
+#   show_digit(units, OFFSET_LEFT+4, OFFSET_TOP, r, g, b)
 
 def show_capacity(total):
     green = (0,255,0)
@@ -63,12 +62,14 @@ def show_capacity(total):
     
     color = green
     if total >= totalCapacity:
-        color = red 
-        
-    pixels = [color if i < storeCapacityPercent
-                else white for i in range(64)]
-    senseH.set_pixels(pixels)
-    
+        color = red
+    if color == green:
+        pixels = [color if i < storeCapacityPercent
+                else white for i in reversed(range(64))]
+        senseH.set_pixels(pixels)
+    if color == red:
+        storenum = retrieveOtherStoreCount(total)
+        senseH.show_letter(str(storenum), red, white);
 
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
@@ -84,6 +85,7 @@ ap.add_argument("-c", "--confidence", type=float, default=0.4,
     help="minimum probability to filter weak detections")
 ap.add_argument("-s", "--skip-frames", type=int, default=30,
     help="# of skip frames between detections")
+ap.add_argument("-k", "--storeID", type=int, help="store number to identify location")
 args = vars(ap.parse_args())
 
 # sensehat gui stuff
@@ -134,7 +136,7 @@ totalFrames = 0
 totalDown = 0
 totalUp = 0
 totalPrev = 0
-totalCapacity = 4
+totalCapacity = 3
 
 # start the frames per second throughput estimator
 fps = FPS().start()
@@ -318,7 +320,7 @@ while True:
         total = totalUp-totalDown
     if total != totalPrev:
         print(total)
-        storePiUpdate(total)
+        storePiUpdate(total, senseH.get_temperature(), senseH.get_humidity(), args["storeID"])
         show_capacity(total)  
     totalPrev = total
     
