@@ -9,7 +9,6 @@ import time
 
 def retrieveDataFromTS():
     #setup
-
     #Database connection
     conn = sqlite3.connect("database.db")
 
@@ -36,36 +35,20 @@ def retrieveDataFromTS():
     if Count1 < 0:
         Count1 = 0
     if Temp1 < -15 or Temp1 > 60:
-        print("Invalid temperature")
         return False
     if Hum1 < 0 or Hum1 > 100:
-        print("Invalid humidity")
         return False
         
     #Find values of recorded date and time 
     Date1 = store1['feeds'][0]['created_at']
     Date1 = Date1[0:10]
-    #print(Date1)
+
     Time1 = store1['feeds'][0]['created_at']
     Time1 = Time1[11:16]
-    print(Time1)
     
     #Insert recorded values into database
-    cursor.execute('''INSERT INTO Store2Data (date,time,count,temperature,humidity) VALUES (?,?,?,?,?)''',(Date1, Time1, Count1, Temp1, Hum1))
+    cursor.execute('''INSERT INTO store2 (date,time,count,temperature,humidity) VALUES (?,?,?,?,?)''',(Date1, Time1, Count1, Temp1, Hum1))
     conn.commit()
-    #For demo only
-    print("Values stored")
-    
-    #FOR DEMOS ONLY WILL BE COMMENTED OUT LATER - Print selected rows' data
-    cursor.execute('''SELECT * FROM Store1Data''')
-    for row in cursor:
-        print(row['count'],row['temperature'],row['humidity'],row['date'],row['time'])
-    
-#     print(Count1)
-#     print(Temp1)
-#     print(Hum1)
-#     print(Date1)
-#     print(Time1)
     
     #Begin Store 2 Process.
     
@@ -81,32 +64,19 @@ def retrieveDataFromTS():
     if Count2 < 0:
         Count2 = 0
     if Temp2 < -15 or Temp1 > 60:
-        print("Invalid temperature")
         return False
     if Hum2 < 0 or Hum1 > 100:
-        print("Invalid humidity")
         return False
     
     #Insert recorded values into database
     #Uses Date1 and Time1 to avoid query errors that come up when timestamps do not match exactly. Pull is done at nearly the same time, so this is fine.
-    cursor.execute('''INSERT INTO Store2Data (date,time,count,temperature,humidity) VALUES (?,?,?,?,?)''',(Date1, Time1, Count2, Temp2, Hum2))
+    cursor.execute('''INSERT INTO store2 (date,time,count,temperature,humidity) VALUES (?,?,?,?,?)''',(Date1, Time1, Count2, Temp2, Hum2))
     conn.commit()
-    #For demos only
-    print("Values stored")
-    
-    
-    #Printing values are only for Demo purposes only 
-    cursor.execute('''SELECT * FROM Store2Data''')
-    for row in cursor:
-        print(row['count'],row['temperature'],row['humidity'],row['date'],row['time'])
-#     print(Count2)
-#     print(Temp2)
-#     print(Hum2)
     
     conn.close()
     return True
     
-if __name__ == '__main__':
+def dbUpdateStartup():
     
     #Every 5 mins(300 seconds) update the database with the recorded values.
     while(True):
