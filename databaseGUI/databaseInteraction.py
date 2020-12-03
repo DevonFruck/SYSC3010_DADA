@@ -47,7 +47,7 @@ def retrieveDataFromTS():
     Time1 = Time1[11:16]
     
     #Insert recorded values into database
-    cursor.execute('''INSERT INTO store2 (date,time,count,temperature,humidity) VALUES (?,?,?,?,?)''',(Date1, Time1, Count1, Temp1, Hum1))
+    cursor.execute('''INSERT INTO store1 (date,time,count,temperature,humidity) VALUES (?,?,?,?,?)''',(Date1, Time1, Count1, Temp1, Hum1))
     conn.commit()
     
     #Begin Store 2 Process.
