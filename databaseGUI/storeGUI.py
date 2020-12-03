@@ -275,12 +275,12 @@ def polling():
     global ui, DELAY
 
     time.sleep(5)   #Give 5 seconds to start up GUI to avoid errors
-    now = datetime.now()
     
     while True:     #Database polling and GUI updating takes place here
 
         #found in databasepoll.py
         store1_data, store2_data = database_retrieve()
+        now = datetime.now()
         current_time = now.strftime("%H:%M")
 
         ui.updateSignal.emit(store1_data[0], store1_data[1], store1_data[2], store1_data[3],\
