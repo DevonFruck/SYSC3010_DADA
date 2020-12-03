@@ -10,8 +10,8 @@
 #   --output output/webcam_output.avi
 
 # import the necessary packages
-from sense_emu import SenseHat 
-#from sense_hat import SenseHat #uncomment this if not using emulator
+#from sense_emu import SenseHat 
+from sense_hat import SenseHat #uncomment this if not using emulator
 from pyimagesearch.centroidtracker import CentroidTracker
 from pyimagesearch.trackableobject import TrackableObject
 from imutils.video import VideoStream
@@ -107,7 +107,7 @@ net = cv2.dnn.readNetFromCaffe(args["prototxt"], args["model"])
 # if a video path was not supplied, grab a reference to the webcam
 if not args.get("input", False):
     print("[INFO] starting video stream...")
-    vs = VideoStream(src="rtsp://192.168.0.16:8080/h264_ulaw.sdp").start()
+    vs = VideoStream(src="rtsp://192.168.1.88:8080/h264_ulaw.sdp").start()
     time.sleep(2.0)
 
 # otherwise, grab a reference to the video file
