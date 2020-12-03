@@ -8,8 +8,8 @@ from databaseInteraction import dbUpdateStartup
 from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
 
 ############# GLOBAL VARIABLES ##################################
-CAP1 = 25   # Store 1 capacity
-CAP2 = 25   # Store 2 capacity
+CAP1 = 3   # Store 1 capacity
+CAP2 = 3   # Store 2 capacity
 DELAY = 0.1 #GUI update interval, in minutes
 #################################################################
 
@@ -197,13 +197,13 @@ class Ui_MasterWindow(QObject):
         self.store1_cap_label.setText(_translate("MasterWindow", "Store Capacity:"))
         self.store1Count.setText(_translate("MasterWindow", "Current count:           0"))
         self.store1_totalCustomers.setText(_translate("MasterWindow", "Customer Peak:          0"))
-        self.label_2.setText(_translate("MasterWindow", "25"))
+        self.label_2.setText(_translate("MasterWindow", str(CAP1)))
         self.store1_totalCustomers_2.setText(_translate("MasterWindow", "Recent Humidity:        0"))
         self.store1_totalCustomers_3.setText(_translate("MasterWindow", "Recent Temperature:  0"))
         self.store2_cap_label.setText(_translate("MasterWindow", "Store Capacity:"))
         self.store2Count.setText(_translate("MasterWindow", "Current count:           0"))
         self.store2_customerPeak.setText(_translate("MasterWindow", "Customer Peak:          0"))
-        self.label_3.setText(_translate("MasterWindow", "25"))
+        self.label_3.setText(_translate("MasterWindow", str(CAP2)))
         self.store2_humidity.setText(_translate("MasterWindow", "Recent Humidity:        0"))
         self.store2_temp.setText(_translate("MasterWindow", "Recent Temperature:  0"))
         self.labeldate.setText(_translate("MasterWindow", "Last updated: N/A"))
@@ -275,12 +275,12 @@ def polling():
     global ui, DELAY
 
     time.sleep(5)   #Give 5 seconds to start up GUI to avoid errors
-    now = datetime.now()
     
     while True:     #Database polling and GUI updating takes place here
 
         #found in databasepoll.py
         store1_data, store2_data = database_retrieve()
+        now = datetime.now()
         current_time = now.strftime("%H:%M")
 
         ui.updateSignal.emit(store1_data[0], store1_data[1], store1_data[2], store1_data[3],\
