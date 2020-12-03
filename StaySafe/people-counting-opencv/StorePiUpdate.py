@@ -16,16 +16,12 @@ s2URL = "https://api.thingspeak.com/channels/1225784/feeds.json?api_key=6UIX8KY5
 storeList = [s1URL, s2URL]
 
 
-<<<<<<< HEAD
 def storePiUpdate(count, temp, humidity, storeID):
     writeKey = ""
     if int(storeID) == 1:
         writeKey = str(s1key)
     if int(storeID) == 2:
         writeKey = str(s2key)
-=======
-
->>>>>>> 3b70824355ac686e72702bbcc821bddbd0602ec4
     
     while True: #Uploading store data to thingspeak
         params = urllib.parse.urlencode({'field1': count, 'field2': temp, 'field3': humidity, 'key': writeKey})
