@@ -234,7 +234,7 @@ class Ui_MasterWindow(QObject):
 
         if count2 >= CAP2:
             MasterWindow.store2ProgressBar.setProperty("value", 100)
-            MasterWindow.store1ProgressBar.setStyleSheet("QProgressBar::chunk "
+            MasterWindow.store2ProgressBar.setStyleSheet("QProgressBar::chunk "
                   "{"
                     "background-color: red;"
                   "}")
