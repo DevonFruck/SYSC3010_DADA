@@ -16,7 +16,9 @@ StaySafe Store Pi Setup:
 
     Download “people-counting-opencv” folder onto Raspberry Pi at the store 
 
-    Ensure VideoStream URL on line 82 is same as Local IP that IP Webcam is streaming to, edit it otherwise 
+    In “people_counter.py” ensure VideoStream URL on line 82 is same as Local IP that IP Webcam is streaming to, edit it otherwise
+        
+    In the same file, set the value of the “totalCapacity” variable accordingly on line 111 
 
     Run “people_counting.py” with input arguments: 
 
